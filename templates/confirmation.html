@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmation - CleanHome Services{% endblock %}
+
+{% block content %}
+<h2>Booking Confirmation</h2>
+
+<p>Thank you for booking with CleanHome!</p>
+
+<ul>
+  <li><strong>Booking ID:</strong> {{ booking.id }}</li>
+  <li><strong>Service:</strong> {{ booking.service_name }}</li>
+  <li><strong>Customer Name:</strong> {{ booking.customer_name }}</li>
+  <li><strong>Email:</strong> {{ booking.customer_email }}</li>
+  <li><strong>Phone:</strong> {{ booking.customer_phone }}</li>
+  <li><strong>Date:</strong> {{ booking.date }}</li>
+  <li><strong>Service Address:</strong>
+    {% if payment %}
+      {{ payment.street_address }}, {{ payment.city }}, {{ payment.province }}, {{ payment.region }}
+    {% else %}
+      Not provided
+    {% endif %}
+  </li>
+  <li><strong>Notes:</strong> {{ booking.notes or 'None' }}</li>
+  <li><strong>Bedrooms:</strong> {{ booking.bedroom_qty }}</li>
+  <li><strong>Baths:</strong> {{ booking.bath_qty }}</li>
+  <li><strong>Total Price:</strong> ₱{{ "%.2f"|format(booking.total_price) }}</li>
+  <li><strong>Payment Method:</strong> {{ payment.payment_method if payment else 'Not provided' }}</li>
+  <li><strong>Payment Status:</strong> {{ payment.payment_status if payment else 'Pending' }}</li>
+</ul>
+
+<a href="{{ url_for('home') }}">Back to Services</a>
+{% endblock %}

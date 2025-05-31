@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}CleanHome Services - Professional Cleaning{% endblock %}
+
+{% block content %}
+<div class="services-header">
+  <h2>Our Services</h2>
+  <p>Professional cleaning solutions for your home or office</p>
+</div>
+
+<div class="services-grid">
+  {% for service in services %}
+  <div class="service-card">
+    <h3>{{ service.name }}</h3>
+    <p class="price">₱{{ "%.2f"|format(service.base_price) }}</p>
+    <!-- <p class="duration">{{ service.duration }} minutes</p> -->
+    <p class="description">{{ service.description }}</p>
+    <a href="{{ url_for('book', service_id=service.id) }}" class="button">Book Now</a>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="hero-image">
+  <img src="/static/img/cleaning-service.jpg" alt="Professional cleaning team" width="100%">
+  <p class="image-credit">Image by <a href="https://www.freepik.com/free-photo/house-cleaning-service_1238279.htm">Freepik</a></p>
+</div>
+{% endblock %}

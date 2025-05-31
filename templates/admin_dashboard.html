@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <h1>Admin Dashboard</h1>
+
+  <div class="stats">
+      <div><strong>Total Bookings:</strong> {{ total_bookings }}</div>
+      <div><strong>Total Services:</strong> {{ total_services }}</div>
+      <div><strong>Total Revenue:</strong> {{ total_revenue | currency }}</div>
+      <div><strong>New Bookings Today:</strong> {{ new_bookings_today }}</div>
+  </div>
+
+  <div class="actions">
+      <a href="{{ url_for('show_bookings') }}">View All Bookings</a>
+      <a href="{{ url_for('backup_bookings') }}">Backup Bookings</a>
+  </div>
+
+  {% if recent_bookings %}
+  <table>
+      <caption>Recent Bookings</caption>
+      <thead>
+          <tr>
+              <th>Booking ID</th>
+              <th>Customer</th>
+              <th>Service</th>
+              <th>Date</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for b in recent_bookings %}
+          <tr>
+              <td>{{ b.id }}</td>
+              <td>{{ b.customer_name }}</td>
+              <td>{{ b.service_name }}</td>
+              <td>{{ b.date }}</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endblock %}

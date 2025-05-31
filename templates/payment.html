@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - CleanHome Services{% endblock %}
+
+{% block content %}
+
+{% if show_modal %}
+  <div id="confirmation-modal" class="modal">
+    <div class="modal-content">
+      <p>{{ instruction }}</p>
+      <form method="POST">
+        <!-- Preserve all submitted form data as hidden inputs -->
+        <input type="hidden" name="street_address" value="{{ request.form.get('street_address', payment.street_address if payment else '') }}">
+        <input type="hidden" name="city" value="{{ request.form.get('city', payment.city if payment else '') }}">
+        <input type="hidden" name="province" value="{{ request.form.get('province', payment.province if payment else '') }}">
+        <input type="hidden" name="region" value="{{ request.form.get('region', payment.region if payment else '') }}">
+        <input type="hidden" name="payment_method" value="{{ request.form.get('payment_method', payment.payment_method if payment else '') }}">
+        <input type="hidden" name="confirm" value="yes">
+        <button type="submit">Agree</button>
+        <a href="{{ url_for('payment', booking_id=booking.id) }}">Cancel</a>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      text-align: center;
+    }
+  </style>
+{% endif %}
+
+<h2>Payment for Booking #{{ booking.id }}</h2>
+
+<p><strong>Service:</strong> {{ booking.service_name }}</p>
+<p><strong>Date:</strong> {{ booking.date }}</p>
+<p><strong>Total Price:</strong> ₱{{ "%.2f"|format(booking.total_price) }}</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for category, message in messages %}
+      <li class="{{ category }}">{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+  <fieldset>
+    <legend>Service Address</legend>
+    
+    <label for="street_address">Street Address:</label><br>
+    <input type="text" id="street_address" name="street_address" required
+           value="{{ payment.street_address if payment else '' }}"><br><br>
+           
+    <label for="city">City:</label><br>
+    <input type="text" id="city" name="city" required
+           value="{{ payment.city if payment else '' }}"><br><br>
+
+    <label for="province">Province:</label><br>
+    <input type="text" id="province" name="province" required
+           value="{{ payment.province if payment else '' }}"><br><br>
+
+    <label for="region">Region:</label><br>
+    <input type="text" id="region" name="region" required
+           value="{{ payment.region if payment else '' }}"><br><br>
+  </fieldset>
+
+  <fieldset>
+    <legend>Payment Method</legend>
+    <label>
+      <input type="radio" name="payment_method" value="Card" required
+        {% if payment and payment.payment_method == 'Card' %}checked{% endif %}>
+      Card
+    </label><br>
+
+    <label>
+      <input type="radio" name="payment_method" value="GCASH"
+        {% if payment and payment.payment_method == 'GCASH' %}checked{% endif %}>
+      GCASH
+    </label><br>
+
+    <label>
+      <input type="radio" name="payment_method" value="Cash"
+        {% if payment and payment.payment_method == 'Cash' %}checked{% endif %}>
+      Cash
+    </label>
+  </fieldset>
+
+  <button type="submit">Submit Payment</button>
+</form>
+
+<a href="{{ url_for('home') }}">Cancel and go back</a>
+
+{% endblock %}

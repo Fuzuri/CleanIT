@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Book {{ service.name }} - CleanHome Services{% endblock %}
+
+{% block content %}
+<h2>Book: {{ service.name }}</h2>
+
+<p><strong>Base Price:</strong> ₱{{ "%.2f"|format(service.base_price) }}</p>
+<p>{{ service.description }}</p>
+
+<form method="POST" action="{{ url_for('book', service_id=service.id) }}">
+  {# Show pricing options based on type #}
+  {% if bedroom_price is not none and bathroom_price is not none %}
+    <fieldset>
+      <legend>Pricing Per Room</legend>
+      <p>
+        Base price includes 1 bedroom and 1 bath.<br>
+        <strong>Additional charge:</strong><br>
+        ₱{{ "%.2f"|format(bedroom_price) }} per additional bedroom,<br>
+        ₱{{ "%.2f"|format(bathroom_price) }} per additional bathroom.
+      </p>
+
+      {% if base_pricing_id %}
+        <input type="hidden" name="pricing_id" value="{{ base_pricing_id }}">
+      {% endif %}
+
+      <label for="bedroom_qty">Number of bedrooms:</label>
+      <input type="number" id="bedroom_qty" name="bedroom_qty" min="0" max="9" value="1" required>
+      <small>(Max 9 bedrooms; total max 10 bedrooms including base 1)</small>
+      <br><br>
+
+      <label for="bath_qty">Number of baths:</label>
+      <input type="number" id="bath_qty" name="bath_qty" min="0" max="9" value="1" required>
+      <small>(Max 9 baths; total max 10 baths including base 1)</small>
+    </fieldset>
+
+  {% elif flat_tiers %}
+    <fieldset>
+      <legend>Select Pricing Option</legend>
+      {% for option in flat_tiers %}
+      <div>
+        <input 
+          type="radio" 
+          id="pricing_{{ option.label | replace(' ', '_') }}" 
+          name="pricing_id" 
+          value="{{ option.id }}" 
+          required
+        >
+        <label for="pricing_{{ option.label | replace(' ', '_') }}">
+          {{ option.label }} — ₱{{ "%.2f"|format(option.price) }}
+        </label>
+      </div>
+      {% endfor %}
+    </fieldset>
+
+  {% elif flat_rate %}
+    <fieldset>
+      <legend>Select Pricing Option</legend>
+      {% for option in flat_rate %}
+      <div>
+        <input 
+          type="radio" 
+          id="pricing_{{ option.label | replace(' ', '_') }}" 
+          name="pricing_id" 
+          value="{{ option.id }}" 
+          required
+        >
+        <label for="pricing_{{ option.label | replace(' ', '_') }}">
+          {{ option.label }} — ₱{{ "%.2f"|format(option.price) }}
+        </label>
+      </div>
+      {% endfor %}
+    </fieldset>
+
+  {% elif hourly_price %}
+    <fieldset>
+      <legend>Hourly Pricing</legend>
+      <p>₱{{ "%.2f"|format(hourly_price) }} per hour</p>
+
+      {% if hourly_pricing_id %}
+        <input type="hidden" name="pricing_id" value="{{ hourly_pricing_id }}">
+      {% endif %}
+
+      <label for="hours">Number of hours:</label>
+      <input type="number" id="hours" name="hours" min="1" max="24" value="1" required>
+    </fieldset>
+
+  {% elif custom_label %}
+    <p>{{ custom_label }} – Pricing upon assessment</p>
+    <input type="hidden" name="pricing_id" value="0">  {# default placeholder #}
+  {% endif %}
+
+  <fieldset>
+    <legend>Customer Information</legend>
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="email">Email:</label><br>
+    <input type="email" id="email" name="email" required><br><br>
+
+    <label for="phone">Phone:</label><br>
+    <input type="tel" id="phone" name="phone" required><br><br>
+
+    <label for="date">Booking Date:</label><br>
+    <input type="date" id="date" name="date" required><br><br>
+
+    <label for="notes">Additional Notes (optional):</label><br>
+    <textarea id="notes" name="notes" rows="3"></textarea><br><br>
+  </fieldset>
+
+  <button type="submit">Confirm Booking</button>
+</form>
+
+<a href="{{ url_for('home') }}">Back to services</a>
+{% endblock %}

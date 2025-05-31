@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}All Bookings - CleanHome Services{% endblock %}
+{% block content %}
+<h2>All Bookings</h2>
+
+<a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="margin-bottom: 10px; display: inline-block;">
+  Return to Dashboard
+</a>
+
+{% if bookings %}
+<form method="post" action="{{ url_for('update_payment_status') }}">
+  <table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Customer</th>
+        <th>Service</th>
+        <th>Address</th>
+        <th>Date</th>
+        <th>Total Price</th>
+        <th>Options Selected</th>
+        <th>Payment Method</th>
+        <th>Payment Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for booking in bookings %}
+      <tr>
+        <td>{{ booking.id }}</td>
+        <td>{{ booking.customer_name }}</td>
+        <td>{{ booking.service_name }}</td>
+        <td>
+          {% if booking.payment %}
+            {{ booking.payment.street_address }}, {{ booking.payment.city }},
+            {{ booking.payment.province }}, {{ booking.payment.region }}
+          {% else %}
+            Not provided
+          {% endif %}
+        </td>
+        <td>{{ booking.date }}</td>
+        <td>₱{{ "%.2f"|format(booking.total_price) }}</td>
+        <td>
+          {% if booking.options %}
+          <ul>
+            {% for option in booking.options %}
+              <li>{{ option.label }} (x{{ option.quantity }}) - ₱{{ "%.2f"|format(option.price * option.quantity) }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+            No options selected
+          {% endif %}
+        </td>
+        <td>{{ booking.payment_method }}</td>
+        <td>
+          <select name="payment_status_{{ booking.id }}">
+            <option value="pending" {% if booking.payment and booking.payment.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="paid" {% if booking.payment and booking.payment.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+          </select>
+        </td>
+        <td>
+          <button type="submit" name="update_id" value="{{ booking.id }}">Update</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
+{% else %}
+<p>No bookings available.</p>
+{% endif %}
+
+<a href="{{ url_for('home') }}">Back to Home</a>
+{% endblock %}

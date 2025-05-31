@@ -1,0 +1,22 @@
+[
+  { "service_id": 1, "rule_type": "per_room", "label": "Per Bedroom", "price": 150 },
+  { "service_id": 1, "rule_type": "per_room", "label": "Per Bathroom", "price": 100 },
+
+  { "service_id": 2, "rule_type": "per_room", "label": "Per Bedroom", "price": 200 },
+  { "service_id": 2, "rule_type": "per_room", "label": "Per Bathroom", "price": 150 },
+
+  { "service_id": 3, "rule_type": "flat_tier", "label": "Studio", "price": 1800, "min_quantity": 0, "max_quantity": 0 },
+  { "service_id": 3, "rule_type": "flat_tier", "label": "1 Bed / 1 Bath", "price": 2200, "min_quantity": 1, "max_quantity": 1 },
+  { "service_id": 3, "rule_type": "flat_tier", "label": "2 Bed / 1 Bath", "price": 2500, "min_quantity": 2, "max_quantity": 2 },
+  { "service_id": 3, "rule_type": "flat_tier", "label": "3 Bed / 2 Bath", "price": 3200, "min_quantity": 3, "max_quantity": 3 },
+
+  { "service_id": 4, "rule_type": "hourly", "label": "Per Hour", "price": 400 },
+
+  { "service_id": 5, "rule_type": "custom", "label": "Per Assessment", "price": 0 },
+
+  { "service_id": 6, "rule_type": "flat_rate", "label": "Event (Small)", "price": 1500 },
+  { "service_id": 6, "rule_type": "flat_rate", "label": "Event (Large)", "price": 2500 },
+
+  { "service_id": 7, "rule_type": "flat_rate", "label": "Basic Outdoor Cleaning", "price": 1000 },
+  { "service_id": 7, "rule_type": "custom", "label": "Pressure Washing (Driveway)", "price": 1200 }
+]

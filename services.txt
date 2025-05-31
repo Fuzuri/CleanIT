@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Regular Cleaning",
+    "description": "General routine cleaning for homes and apartments.",
+    "base_price": 500
+  },
+  {
+    "id": 2,
+    "name": "Deep Cleaning",
+    "description": "Intensive cleaning including hard-to-reach areas.",
+    "base_price": 1000
+  },
+  {
+    "id": 3,
+    "name": "End of Tenancy Cleaning",
+    "description": "Thorough cleaning before moving out.",
+    "base_price": 2000
+  },
+  {
+    "id": 4,
+    "name": "Domestic Cleaning",
+    "description": "Recurring residential cleaning service.",
+    "base_price": 700
+  },
+  {
+    "id": 5,
+    "name": "Disaster Cleaning & Restoration",
+    "description": "Post-fire, flood, or emergency cleaning.",
+    "base_price": 3000
+  },
+  {
+    "id": 6,
+    "name": "Event Cleaning",
+    "description": "Pre- and post-event cleanup.",
+    "base_price": 1500
+  },
+  {
+    "id": 7,
+    "name": "Outdoor Cleaning",
+    "description": "Cleaning of outdoor spaces like patios and driveways.",
+    "base_price": 1000
+  }
+]

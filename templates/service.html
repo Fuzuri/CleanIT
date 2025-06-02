@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}CleanIT - {{ service_type|title }} Cleaning Service{% endblock %}
+
+{% block content %}
+<section class="service-detail">
+  <div class="service-hero">
+    <div class="service-hero-content">
+      <h1>{{ service_type|title }} Cleaning Service</h1>
+      <p class="service-description">
+        {% if service_type == 'regular' %}
+        Professional regular cleaning service to keep your space consistently clean and fresh.
+        {% elif service_type == 'deep' %}
+        Thorough deep cleaning service that reaches every corner and surface.
+        {% else %}
+        Comprehensive end of tenancy cleaning to ensure your property meets all requirements.
+        {% endif %}
+      </p>
+      <button class="cta-button">Book Now</button>
+    </div>
+  </div>
+
+  <div class="service-content">
+    <div class="service-features">
+      <h2>What's Included</h2>
+      <ul>
+        {% if service_type == 'regular' %}
+        <li>General dusting and wiping of surfaces</li>
+        <li>Vacuuming and mopping of floors</li>
+        <li>Bathroom cleaning and sanitization</li>
+        <li>Kitchen cleaning and organization</li>
+        <li>Waste removal and disposal</li>
+        {% elif service_type == 'deep' %}
+        <li>Detailed cleaning of all surfaces</li>
+        <li>Deep carpet and upholstery cleaning</li>
+        <li>Window and frame cleaning</li>
+        <li>Appliance deep cleaning</li>
+        <li>Cabinet and drawer organization</li>
+        {% else %}
+        <li>Complete property cleaning</li>
+        <li>Deep cleaning of all rooms</li>
+        <li>Carpet and upholstery cleaning</li>
+        <li>Window and frame cleaning</li>
+        <li>Final inspection preparation</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <div class="service-pricing">
+      <h2>Pricing</h2>
+      <div class="pricing-cards">
+        <div class="pricing-card">
+          <h3>Small Space</h3>
+          <p class="price">₱1,500</p>
+          <p class="space-size">Up to 50 sqm</p>
+          <button class="cta-button">Select</button>
+        </div>
+        <div class="pricing-card">
+          <h3>Medium Space</h3>
+          <p class="price">₱2,500</p>
+          <p class="space-size">51-100 sqm</p>
+          <button class="cta-button">Select</button>
+        </div>
+        <div class="pricing-card">
+          <h3>Large Space</h3>
+          <p class="price">₱3,500</p>
+          <p class="space-size">101-150 sqm</p>
+          <button class="cta-button">Select</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %} 

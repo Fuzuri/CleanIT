@@ -1,11 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}Payment - CleanHome Services{% endblock %}
+{% block title %}Payment - CleanIT{% endblock %}
+
+{% block header %}
+<header class="front-page-header payment-header">
+  <div class="branding">
+    <img src="{{ url_for('static', filename='img/multicolorflatcolorfulprofessionalhomecleaningserv1419-h72-200h.png') }}" alt="CleanIT Logo" class="logo" />
+    <span class="brand-name">CleanIT</span>
+  </div>
+</header>
+{% endblock %}
+
+{% block styles %}
+<style>
+  .custom-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
 {% if show_modal %}
-  <div id="confirmation-modal" class="modal">
+  <div id="paymentModal" class="modal">
     <div class="modal-content">
       <p>{{ instruction }}</p>
       <form method="POST">
@@ -16,93 +37,149 @@
         <input type="hidden" name="region" value="{{ request.form.get('region', payment.region if payment else '') }}">
         <input type="hidden" name="payment_method" value="{{ request.form.get('payment_method', payment.payment_method if payment else '') }}">
         <input type="hidden" name="confirm" value="yes">
-        <button type="submit">Agree</button>
-        <a href="{{ url_for('payment', booking_id=booking.id) }}">Cancel</a>
+        <button type="submit" class="btn-confirm">Agree</button>
+        <a href="{{ url_for('payment', booking_id=booking.id) }}" class="btn-cancel">Cancel</a>
       </form>
     </div>
   </div>
-
-  <style>
-    .modal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0,0,0,0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      text-align: center;
-    }
-  </style>
 {% endif %}
 
-<h2>Payment for Booking #{{ booking.id }}</h2>
-
-<p><strong>Service:</strong> {{ booking.service_name }}</p>
-<p><strong>Date:</strong> {{ booking.date }}</p>
-<p><strong>Total Price:</strong> ₱{{ "%.2f"|format(booking.total_price) }}</p>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul class="flashes">
-    {% for category, message in messages %}
-      <li class="{{ category }}">{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-
-<form method="POST">
-  <fieldset>
-    <legend>Service Address</legend>
+<div class="payment-container">
+  <div class="payment-form-section">
+    <h2>Payment for Booking</h2>
     
-    <label for="street_address">Street Address:</label><br>
-    <input type="text" id="street_address" name="street_address" required
-           value="{{ payment.street_address if payment else '' }}"><br><br>
-           
-    <label for="city">City:</label><br>
-    <input type="text" id="city" name="city" required
-           value="{{ payment.city if payment else '' }}"><br><br>
+    <form method="POST">
+      <div class="service-address">
+        <h3>Service Address</h3>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="street_address">Street Address</label>
+            <input type="text" id="street_address" name="street_address" required
+                   value="{{ payment.street_address if payment else '' }}"
+                   placeholder="Street Address">
+          </div>
+          
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" required
+                   value="{{ payment.city if payment else '' }}"
+                   placeholder="City">
+          </div>
 
-    <label for="province">Province:</label><br>
-    <input type="text" id="province" name="province" required
-           value="{{ payment.province if payment else '' }}"><br><br>
+          <div class="form-group">
+            <label for="region">Region</label>
+            <input type="text" id="region" name="region" required
+                   value="{{ payment.region if payment else '' }}"
+                   placeholder="Region">
+          </div>
 
-    <label for="region">Region:</label><br>
-    <input type="text" id="region" name="region" required
-           value="{{ payment.region if payment else '' }}"><br><br>
-  </fieldset>
+          <div class="form-group full-width">
+            <label for="province">Province</label>
+            <input type="text" id="province" name="province" required
+                   value="{{ payment.province if payment else '' }}"
+                   placeholder="Province">
+          </div>
+        </div>
+      </div>
 
-  <fieldset>
-    <legend>Payment Method</legend>
-    <label>
-      <input type="radio" name="payment_method" value="Card" required
-        {% if payment and payment.payment_method == 'Card' %}checked{% endif %}>
-      Card
-    </label><br>
+      <div class="payment-method">
+        <h3>Payment</h3>
+        <div class="payment-options">
+          <label class="radio-container">
+            <input type="radio" name="payment_method" value="Cash" required
+              {% if payment and payment.payment_method == 'Cash' %}checked{% endif %}>
+            <span class="radio-label">Cash</span>
+          </label>
+          <label class="radio-container">
+            <input type="radio" name="payment_method" value="GCASH"
+              {% if payment and payment.payment_method == 'GCASH' %}checked{% endif %}>
+            <span class="radio-label">GCash</span>
+          </label>
+          <label class="radio-container">
+            <input type="radio" name="payment_method" value="Card"
+              {% if payment and payment.payment_method == 'Card' %}checked{% endif %}>
+            <span class="radio-label">Card</span>
+          </label>
+        </div>
+      </div>
 
-    <label>
-      <input type="radio" name="payment_method" value="GCASH"
-        {% if payment and payment.payment_method == 'GCASH' %}checked{% endif %}>
-      GCASH
-    </label><br>
+      <div class="service-plan">
+        <h3>Confirm Service Plan</h3>
+        <p class="terms">By clicking "Confirm Booking", you agree to our Terms of Service and Privacy Policy. You will be charged the amount shown in the booking summary. Cancellations must be made at least 24 hours before the scheduled service.</p>
+        <label class="checkbox-container">
+          <input type="checkbox" required>
+          <span class="checkmark"></span>
+          I agree to the terms and conditions
+        </label>
+      </div>
 
-    <label>
-      <input type="radio" name="payment_method" value="Cash"
-        {% if payment and payment.payment_method == 'Cash' %}checked{% endif %}>
-      Cash
-    </label>
-  </fieldset>
+      <button type="submit" class="btn-confirm">Confirm Booking</button>
+    </form>
+  </div>
 
-  <button type="submit">Submit Payment</button>
-</form>
+  <div class="booking-summary">
+    <h2>Booking Summary</h2>
+    <div class="summary-content">
+      <div class="summary-row">
+        <div class="summary-label">Service:</div>
+        <div class="summary-value">
+          <div class="service-name">{{ booking.service_name }}</div>
+          <div class="service-specs">
+            {% if booking.service_name == 'Regular Cleaning' or booking.service_name == 'Deep Cleaning' %}
+              {% if booking.bedroom_qty > 0 %}
+              <span>{{ booking.bedroom_qty }} room</span>
+              {% endif %}
+              {% if booking.bath_qty > 0 %}
+              <span class="bullet">•</span>
+              <span>{{ booking.bath_qty }} bath</span>
+              {% endif %}
+            {% elif booking.service_name == 'Domestic Cleaning' %}
+              {% if booking.hours > 0 %}
+              <span>{{ booking.hours }} hours</span>
+              {% endif %}
+            {% elif booking.service_name in ['End of Tenancy Cleaning', 'Event Cleaning', 'Outdoor Cleaning', 'Disaster Cleaning & Restoration'] %}
+              {% if booking.pricing_label %}
+              <span>{{ booking.pricing_label }}</span>
+              {% if '_custom' in booking.pricing_id|string %}
+              <span class="bullet">•</span>
+              <span class="custom-tag">Custom Assessment</span>
+              {% endif %}
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
 
-<a href="{{ url_for('home') }}">Cancel and go back</a>
+      <div class="summary-row">
+        <div class="summary-label">Date:</div>
+        <div class="summary-value">{{ booking.date }}</div>
+      </div>
 
+      <div class="summary-row">
+        <div class="summary-label">Total Price:</div>
+        <div class="summary-value price">
+          {% if '_custom' in booking.pricing_id|string %}
+          To be assessed
+          {% else %}
+          ₱{{ "%.2f"|format(booking.total_price) }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  {% if show_modal %}
+  const modal = document.getElementById('paymentModal');
+  if (modal) {
+    modal.classList.add('show');
+  }
+  {% endif %}
+});
+</script>
 {% endblock %}

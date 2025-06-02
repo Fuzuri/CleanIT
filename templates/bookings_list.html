@@ -1,74 +1,537 @@
 {% extends "base.html" %}
-{% block title %}All Bookings - CleanHome Services{% endblock %}
+{% block title %}Manage Bookings - CleanIT{% endblock %}
+
 {% block content %}
-<h2>All Bookings</h2>
+<div class="admin-container">
+    <div class="admin-header">
+        <div class="header-left">
+            <a href="{{ url_for('admin_dashboard') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Back to Dashboard
+            </a>
+            <h1>Manage Bookings</h1>
+        </div>
+        <div class="header-actions">
+            <div class="filter-group">
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <div class="date-range">
+                    <input type="date" id="startDate" class="date-input">
+                    <span>to</span>
+                    <input type="date" id="endDate" class="date-input">
+                </div>
+            </div>
+            <div class="search-box">
+                <input type="text" placeholder="Search bookings..." id="searchBookings">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+    </div>
 
-<a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="margin-bottom: 10px; display: inline-block;">
-  Return to Dashboard
-</a>
-
+    <div class="bookings-content">
 {% if bookings %}
+        <div class="table-responsive">
 <form method="post" action="{{ url_for('update_payment_status') }}">
-  <table border="1" cellpadding="5" cellspacing="0">
+                <table class="admin-table">
     <thead>
       <tr>
-        <th>ID</th>
+                            <th>
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th>Booking ID</th>
         <th>Customer</th>
         <th>Service</th>
+        <th>Service Specs</th>
         <th>Address</th>
         <th>Date</th>
         <th>Total Price</th>
-        <th>Options Selected</th>
         <th>Payment Method</th>
-        <th>Payment Status</th>
+                            <th>Status</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for booking in bookings %}
       <tr>
-        <td>{{ booking.id }}</td>
-        <td>{{ booking.customer_name }}</td>
+                            <td>
+                                <input type="checkbox" class="booking-select" value="{{ booking.id }}">
+                            </td>
+                            <td>#{{ booking.id }}</td>
+                            <td>
+                                <div class="customer-info">
+                                    <span class="customer-name">{{ booking.customer_name }}</span>
+                                    <span class="customer-email">{{ booking.customer_email }}</span>
+                                </div>
+                            </td>
         <td>{{ booking.service_name }}</td>
         <td>
+          <div class="service-specs">
+            {% if booking.service_name == 'Regular Cleaning' or booking.service_name == 'Deep Cleaning' %}
+              {% if booking.bedroom_qty > 0 %}
+              <span>{{ booking.bedroom_qty }} room</span>
+              {% endif %}
+              {% if booking.bath_qty > 0 %}
+              <span class="bullet">•</span>
+              <span>{{ booking.bath_qty }} bath</span>
+              {% endif %}
+            {% elif booking.service_name == 'Domestic Cleaning' %}
+              {% if booking.hours > 0 %}
+              <span>{{ booking.hours }} hours</span>
+              {% endif %}
+            {% elif booking.service_name in ['End of Tenancy Cleaning', 'Event Cleaning', 'Outdoor Cleaning', 'Disaster Cleaning & Restoration'] %}
+              {% if booking.pricing_label %}
+              <span>{{ booking.pricing_label }}</span>
+              {% if '_custom' in booking.pricing_id|string %}
+              <span class="bullet">•</span>
+              <span class="custom-tag">Custom Assessment</span>
+              {% endif %}
+              {% endif %}
+            {% endif %}
+          </div>
+        </td>
+        <td>
           {% if booking.payment %}
-            {{ booking.payment.street_address }}, {{ booking.payment.city }},
-            {{ booking.payment.province }}, {{ booking.payment.region }}
+                                <div class="location-info">
+                                    <span>{{ booking.payment.street_address }}</span>
+                                    <span>{{ booking.payment.city }}, {{ booking.payment.province }}</span>
+                                </div>
           {% else %}
-            Not provided
+                                <span class="text-muted">Not provided</span>
           {% endif %}
         </td>
         <td>{{ booking.date }}</td>
-        <td>₱{{ "%.2f"|format(booking.total_price) }}</td>
-        <td>
-          {% if booking.options %}
-          <ul>
-            {% for option in booking.options %}
-              <li>{{ option.label }} (x{{ option.quantity }}) - ₱{{ "%.2f"|format(option.price * option.quantity) }}</li>
-            {% endfor %}
-          </ul>
-          {% else %}
-            No options selected
-          {% endif %}
-        </td>
+                            <td>{{ booking.total_price|currency }}</td>
         <td>{{ booking.payment_method }}</td>
         <td>
-          <select name="payment_status_{{ booking.id }}">
-            <option value="pending" {% if booking.payment and booking.payment.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                                <select name="payment_status_{{ booking.id }}" class="status-select status-{{ booking.payment.payment_status|default('pending')|lower }}">
+                                    <option value="pending" {% if not booking.payment or booking.payment.payment_status == 'pending' %}selected{% endif %}>Pending</option>
             <option value="paid" {% if booking.payment and booking.payment.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                                    <option value="cancelled" {% if booking.payment and booking.payment.payment_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
           </select>
         </td>
-        <td>
-          <button type="submit" name="update_id" value="{{ booking.id }}">Update</button>
+                            <td class="actions">
+                                <button type="button" class="action-btn view-btn" title="View Details" data-booking-id="{{ booking.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="action-btn edit-btn" title="Edit Booking" data-booking-id="{{ booking.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="action-btn delete-btn" title="Delete Booking" data-booking-id="{{ booking.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </form>
-{% else %}
-<p>No bookings available.</p>
-{% endif %}
+        </div>
 
-<a href="{{ url_for('home') }}">Back to Home</a>
+        <div class="bulk-actions">
+            <span class="selected-count">0 items selected</span>
+            <div class="action-buttons">
+                <button class="bulk-btn confirm-selected" disabled>
+                    <i class="fas fa-check"></i>
+                    Mark as Paid
+                </button>
+                <button class="bulk-btn cancel-selected" disabled>
+                    <i class="fas fa-times"></i>
+                    Cancel Selected
+                </button>
+                <button class="bulk-btn delete-selected" disabled>
+                    <i class="fas fa-trash"></i>
+                    Delete Selected
+                </button>
+            </div>
+        </div>
+{% else %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h2>No Bookings Available</h2>
+            <p>There are currently no bookings in the system.</p>
+        </div>
+{% endif %}
+    </div>
+</div>
+
+<!-- Booking Details Modal -->
+<div class="modal" id="bookingModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Booking Details</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Modal content will be dynamically populated -->
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn cancel">Close</button>
+            <button class="modal-btn confirm">Save Changes</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all functionality
+    const selectAll = document.getElementById('selectAll');
+    const bookingCheckboxes = document.querySelectorAll('.booking-select');
+    const bulkButtons = document.querySelectorAll('.bulk-btn');
+    const selectedCount = document.querySelector('.selected-count');
+
+    function updateBulkActions() {
+        const selectedBoxes = document.querySelectorAll('.booking-select:checked');
+        const count = selectedBoxes.length;
+        selectedCount.textContent = `${count} items selected`;
+        
+        bulkButtons.forEach(button => {
+            button.disabled = count === 0;
+        });
+    }
+
+    selectAll.addEventListener('change', function() {
+        bookingCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateBulkActions();
+    });
+
+    bookingCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+
+    // Bulk action handlers
+    async function handleBulkAction(action) {
+        const selectedBoxes = document.querySelectorAll('.booking-select:checked');
+        const bookingIds = Array.from(selectedBoxes).map(box => parseInt(box.value));
+        
+        if (!bookingIds.length) return;
+
+        let confirmMessage;
+        switch(action) {
+            case 'mark_paid':
+                confirmMessage = 'Are you sure you want to mark these bookings as paid?';
+                break;
+            case 'cancel':
+                confirmMessage = 'Are you sure you want to cancel these bookings?';
+                break;
+            case 'delete':
+                confirmMessage = 'Are you sure you want to delete these bookings? This action cannot be undone.';
+                break;
+        }
+
+        if (!confirm(confirmMessage)) return;
+
+        try {
+            const response = await fetch('/admin/bookings/bulk-update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    booking_ids: bookingIds,
+                    action: action
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to update bookings');
+
+            // Refresh the page to show updated data
+            window.location.reload();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to update bookings. Please try again.');
+        }
+    }
+
+    // Add click handlers for bulk action buttons
+    document.querySelector('.confirm-selected').addEventListener('click', () => handleBulkAction('mark_paid'));
+    document.querySelector('.cancel-selected').addEventListener('click', () => handleBulkAction('cancel'));
+    document.querySelector('.delete-selected').addEventListener('click', () => handleBulkAction('delete'));
+
+    // Status change handling
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const form = this.closest('form');
+            const bookingId = this.name.replace('payment_status_', '');
+            const updateInput = document.createElement('input');
+            updateInput.type = 'hidden';
+            updateInput.name = 'update_id';
+            updateInput.value = bookingId;
+            form.appendChild(updateInput);
+            form.submit();
+        });
+    });
+
+    // Modal handling
+    const modal = document.getElementById('bookingModal');
+    const modalBody = modal.querySelector('.modal-body');
+    const closeButtons = modal.querySelectorAll('.close-modal, .modal-btn.cancel');
+    const saveButton = modal.querySelector('.modal-btn.confirm');
+
+    async function fetchBookingDetails(bookingId) {
+        try {
+            const response = await fetch(`/admin/booking/${bookingId}`);
+            if (!response.ok) throw new Error('Failed to fetch booking details');
+            return await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+            return null;
+        }
+    }
+
+    function formatBookingDetails(data, isViewMode = false) {
+        const booking = data.booking;
+        const options = data.options;
+        
+        return `
+            <div class="booking-details">
+                <div class="detail-section">
+                    <h3>Customer Information</h3>
+                    <div class="detail-row">
+                        <label>Name:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.customer_name}</span>` :
+                            `<input type="text" name="customer_name" value="${booking.customer_name}">`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>Email:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.customer_email}</span>` :
+                            `<input type="email" name="customer_email" value="${booking.customer_email}">`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>Phone:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.customer_phone}</span>` :
+                            `<input type="tel" name="customer_phone" value="${booking.customer_phone}">`
+                        }
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Service Details</h3>
+                    <div class="detail-row">
+                        <label>Service:</label>
+                        <span>${booking.service_name}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Date:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.date}</span>` :
+                            `<input type="date" name="date" value="${booking.date}">`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>Total Amount:</label>
+                        <span>${booking.amount}</span>
+                    </div>
+                </div>
+
+                ${booking.street_address ? `
+                <div class="detail-section">
+                    <h3>Address</h3>
+                    <div class="detail-row">
+                        <label>Street:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.street_address}</span>` :
+                            `<input type="text" name="street_address" value="${booking.street_address}">`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>City:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.city}</span>` :
+                            `<input type="text" name="city" value="${booking.city}">`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>Province:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.province}</span>` :
+                            `<input type="text" name="province" value="${booking.province}">`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>Region:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.region}</span>` :
+                            `<input type="text" name="region" value="${booking.region}">`
+                        }
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="detail-section">
+                    <h3>Payment Information</h3>
+                    <div class="detail-row">
+                        <label>Method:</label>
+                        ${isViewMode ? 
+                            `<span>${booking.payment_method}</span>` :
+                            `<select name="payment_method">
+                                <option value="Cash" ${booking.payment_method === 'Cash' ? 'selected' : ''}>Cash</option>
+                                <option value="Card" ${booking.payment_method === 'Card' ? 'selected' : ''}>Card</option>
+                                <option value="GCASH" ${booking.payment_method === 'GCASH' ? 'selected' : ''}>GCASH</option>
+                            </select>`
+                        }
+                    </div>
+                    <div class="detail-row">
+                        <label>Status:</label>
+                        ${isViewMode ? 
+                            `<span class="status-badge status-${booking.payment_status}">${booking.payment_status}</span>` :
+                            `<select name="payment_status">
+                                <option value="pending" ${booking.payment_status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="paid" ${booking.payment_status === 'paid' ? 'selected' : ''}>Paid</option>
+                                <option value="cancelled" ${booking.payment_status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>`
+                        }
+                    </div>
+                </div>
+
+                ${options.length > 0 ? `
+                <div class="detail-section">
+                    <h3>Selected Options</h3>
+                    <ul class="options-list">
+                        ${options.map(opt => `
+                            <li>${opt.label} (x${opt.quantity}) - ₱${opt.price * opt.quantity}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+
+                <div class="detail-section">
+                    <h3>Additional Notes</h3>
+                    ${isViewMode ? 
+                        `<p>${booking.notes || 'No notes provided.'}</p>` :
+                        `<textarea name="notes">${booking.notes || ''}</textarea>`
+                    }
+                </div>
+            </div>
+        `;
+    }
+
+    // View booking details
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const bookingId = this.dataset.bookingId;
+            const data = await fetchBookingDetails(bookingId);
+            if (data) {
+                modal.querySelector('h2').textContent = 'Booking Details';
+                modalBody.innerHTML = formatBookingDetails(data, true); // View mode
+                modal.style.display = 'block';
+                saveButton.style.display = 'none'; // Hide save button in view mode
+            }
+        });
+    });
+
+    // Edit booking
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const bookingId = this.dataset.bookingId;
+            const data = await fetchBookingDetails(bookingId);
+            if (data) {
+                modal.querySelector('h2').textContent = 'Edit Booking';
+                modalBody.innerHTML = formatBookingDetails(data, false); // Edit mode
+                modal.style.display = 'block';
+                saveButton.style.display = 'block'; // Show save button in edit mode
+                saveButton.dataset.bookingId = bookingId;
+            }
+        });
+    });
+
+    // Save booking changes
+    saveButton.addEventListener('click', async function() {
+        const bookingId = this.dataset.bookingId;
+        const formData = {
+            customer_name: modalBody.querySelector('[name="customer_name"]').value,
+            customer_email: modalBody.querySelector('[name="customer_email"]').value,
+            customer_phone: modalBody.querySelector('[name="customer_phone"]').value,
+            date: modalBody.querySelector('[name="date"]').value,
+            notes: modalBody.querySelector('[name="notes"]').value,
+        };
+
+        const paymentFields = modalBody.querySelectorAll('[name^="payment_"], [name="street_address"], [name="city"], [name="province"], [name="region"]');
+        if (paymentFields.length > 0) {
+            formData.payment = {
+                payment_method: modalBody.querySelector('[name="payment_method"]').value,
+                payment_status: modalBody.querySelector('[name="payment_status"]').value,
+                street_address: modalBody.querySelector('[name="street_address"]').value,
+                city: modalBody.querySelector('[name="city"]').value,
+                province: modalBody.querySelector('[name="province"]').value,
+                region: modalBody.querySelector('[name="region"]').value
+            };
+        }
+
+        try {
+            const response = await fetch(`/admin/booking/${bookingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) throw new Error('Failed to update booking');
+            
+            // Refresh the page to show updated data
+            window.location.reload();
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to update booking. Please try again.');
+        }
+    });
+
+    // Delete booking
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const bookingId = this.dataset.bookingId;
+            if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/admin/booking/${bookingId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) throw new Error('Failed to delete booking');
+                    
+                    // Remove the row from the table
+                    this.closest('tr').remove();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to delete booking. Please try again.');
+                }
+            }
+        });
+    });
+
+    // Close modal
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            modalBody.innerHTML = '';
+            delete saveButton.dataset.bookingId;
+        });
+    });
+
+    // Search and filter functionality
+    const searchInput = document.getElementById('searchBookings');
+    const statusFilter = document.getElementById('statusFilter');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+
+    [searchInput, statusFilter, startDate, endDate].forEach(input => {
+        input.addEventListener('change', function() {
+            // Here you would typically implement search/filter logic
+            console.log('Filtering bookings...');
+        });
+    });
+});
+</script>
 {% endblock %}

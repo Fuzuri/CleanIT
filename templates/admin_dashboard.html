@@ -1,45 +1,308 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Admin Dashboard - CleanIT{% endblock %}
 
 {% block content %}
-<div class="admin-page">
-  <h1>Admin Dashboard</h1>
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <div class="header-actions">
+            <div class="search-box">
+                <input type="text" placeholder="Search bookings..." id="searchBookings">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="date-filter">
+                <input type="date" id="startDate">
+                <span>to</span>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+    </div>
 
-  <div class="stats">
-      <div><strong>Total Bookings:</strong> {{ total_bookings }}</div>
-      <div><strong>Total Services:</strong> {{ total_services }}</div>
-      <div><strong>Total Revenue:</strong> {{ total_revenue | currency }}</div>
-      <div><strong>New Bookings Today:</strong> {{ new_bookings_today }}</div>
-  </div>
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="card-content">
+                <h3>Total Bookings</h3>
+                <p class="card-value">{{ total_bookings }}</p>
+                <p class="card-trend positive">+12% from last month</p>
+            </div>
+        </div>
 
-  <div class="actions">
-      <a href="{{ url_for('show_bookings') }}">View All Bookings</a>
-      <a href="{{ url_for('backup_bookings') }}">Backup Bookings</a>
-  </div>
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="card-content">
+                <h3>Pending Approval</h3>
+                <p class="card-value">{{ pending_bookings }}</p>
+                <p class="card-trend">Requires attention</p>
+            </div>
+        </div>
 
-  {% if recent_bookings %}
-  <table>
-      <caption>Recent Bookings</caption>
-      <thead>
-          <tr>
-              <th>Booking ID</th>
-              <th>Customer</th>
-              <th>Service</th>
-              <th>Date</th>
-          </tr>
-      </thead>
-      <tbody>
-          {% for b in recent_bookings %}
-          <tr>
-              <td>{{ b.id }}</td>
-              <td>{{ b.customer_name }}</td>
-              <td>{{ b.service_name }}</td>
-              <td>{{ b.date }}</td>
-          </tr>
-          {% endfor %}
-      </tbody>
-  </table>
-  {% endif %}
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="card-content">
+                <h3>Total Revenue</h3>
+                <p class="card-value">{{ total_revenue|currency }}</p>
+                <p class="card-trend positive">+8% from last month</p>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="card-content">
+                <h3>Active Customers</h3>
+                <p class="card-value">{{ active_customers }}</p>
+                <p class="card-trend positive">+5 this week</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-sections">
+        <div class="recent-bookings">
+            <div class="section-header">
+                <h2>Recent Bookings</h2>
+                <a href="{{ url_for('show_bookings') }}" class="view-all">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in recent_bookings %}
+                        <tr>
+                            <td>#{{ booking.id }}</td>
+                            <td>{{ booking.customer_name }}</td>
+                            <td>{{ booking.service_name }}</td>
+                            <td>{{ booking.date }}</td>
+                            <td>{{ booking.total_price|currency }}</td>
+                            <td>
+                                <span class="status-badge status-{{ booking.status|lower }}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td class="actions">
+                                <button class="action-btn view-btn" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn edit-btn" title="Edit Booking">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" title="Delete Booking">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-bottom">
+            <div class="popular-services">
+                <h2>Popular Services</h2>
+                <div class="service-stats">
+                    {% for service in popular_services %}
+                    <div class="stat-item">
+                        <div class="stat-info">
+                            <span class="stat-label">{{ service.name }}</span>
+                            <span class="stat-value">{{ service.bookings }} bookings</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: {{ service.percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button class="quick-action-btn" id="addServiceBtn">
+                        <i class="fas fa-plus"></i>
+                        Add New Service
+                    </button>
+                    <button class="quick-action-btn" id="backupDatabaseBtn">
+                        <i class="fas fa-database"></i>
+                        Backup Database
+                    </button>
+                </div>
+                {% if recent_backups %}
+                <div class="recent-backups">
+                    <h3>Recent Backups</h3>
+                    <div class="backup-list">
+                        {% for backup in recent_backups %}
+                        <div class="backup-item">
+                            <div class="backup-info">
+                                <span class="backup-name">{{ backup.filename }}</span>
+                                <span class="backup-meta">
+                                    Size: {{ backup.size }}MB | 
+                                    Created: {{ backup.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </span>
+                            </div>
+                            <div class="backup-path">
+                                Path: backups/{{ backup.filename }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Add Service Modal -->
+<div class="modal" id="addServiceModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Service</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addServiceForm">
+                <div class="form-group">
+                    <label for="serviceName">Service Name</label>
+                    <input type="text" id="serviceName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="serviceDescription">Description</label>
+                    <textarea id="serviceDescription" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="servicePrice">Base Price</label>
+                    <input type="number" id="servicePrice" name="price" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="serviceImage">Image URL</label>
+                    <input type="text" id="serviceImage" name="image_url">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn cancel">Cancel</button>
+            <button class="modal-btn confirm" id="saveServiceBtn">Save Service</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal handling
+    function showModal(modalId) {
+        document.getElementById(modalId).style.display = 'flex';
+    }
+
+    function hideModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Add Service Modal
+    const addServiceBtn = document.getElementById('addServiceBtn');
+    const addServiceModal = document.getElementById('addServiceModal');
+    
+    addServiceBtn.addEventListener('click', () => showModal('addServiceModal'));
+    
+    addServiceModal.querySelector('#saveServiceBtn').addEventListener('click', async function() {
+        const formData = new FormData(document.getElementById('addServiceForm'));
+        try {
+            const response = await fetch('/admin/services/add', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                alert('Service added successfully!');
+                hideModal('addServiceModal');
+                window.location.reload();
+            } else {
+                throw new Error('Failed to add service');
+            }
+        } catch (error) {
+            alert('Error adding service: ' + error.message);
+        }
+    });
+
+    // Backup Database functionality
+    const backupDatabaseBtn = document.getElementById('backupDatabaseBtn');
+    backupDatabaseBtn.addEventListener('click', async function() {
+        try {
+            backupDatabaseBtn.disabled = true;
+            backupDatabaseBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
+            
+            const response = await fetch('/admin/backup-database', {
+                method: 'POST'
+            });
+            
+            if (!response.ok) throw new Error('Failed to backup database');
+            
+            const data = await response.json();
+            alert('Database backup created successfully!\nSaved to: ' + data.backup_path);
+        } catch (error) {
+            alert('Error backing up database: ' + error.message);
+        } finally {
+            backupDatabaseBtn.disabled = false;
+            backupDatabaseBtn.innerHTML = '<i class="fas fa-database"></i> Backup Database';
+        }
+    });
+
+    // Close modal buttons
+    document.querySelectorAll('.close-modal, .modal-btn.cancel').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            modal.style.display = 'none';
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchBookings');
+    searchInput.addEventListener('input', function(e) {
+        // Implement search logic
+    });
+
+    // Date filter functionality
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    [startDate, endDate].forEach(input => {
+        input.addEventListener('change', function() {
+            // Implement date filter logic
+        });
+    });
+
+    // Action buttons functionality
+    document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const action = this.classList.contains('view-btn') ? 'view' :
+                          this.classList.contains('edit-btn') ? 'edit' : 'delete';
+            const row = this.closest('tr');
+            const bookingId = row.querySelector('td:first-child').textContent.substring(1);
+            
+            // Implement action logic
+            console.log(`${action} booking ${bookingId}`);
+        });
+    });
+});
+</script>
 {% endblock %}

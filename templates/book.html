@@ -1,115 +1,243 @@
 {% extends "base.html" %}
 
-{% block title %}Book {{ service.name }} - CleanHome Services{% endblock %}
+{% block title %}Book Service - CleanIT{% endblock %}
 
 {% block content %}
-<h2>Book: {{ service.name }}</h2>
+<div class="booking-container">
+    <div class="service-info">
+        <h1>{{ service.name }}</h1>
+        <p class="service-description">{{ service.description }}</p>
 
-<p><strong>Base Price:</strong> ₱{{ "%.2f"|format(service.base_price) }}</p>
-<p>{{ service.description }}</p>
+        <div class="price-section">
+            <p class="base-price">₱{{ "%.0f"|format(service.base_price) }}</p>
+        </div>
 
-<form method="POST" action="{{ url_for('book', service_id=service.id) }}">
-  {# Show pricing options based on type #}
-  {% if bedroom_price is not none and bathroom_price is not none %}
-    <fieldset>
-      <legend>Pricing Per Room</legend>
-      <p>
-        Base price includes 1 bedroom and 1 bath.<br>
-        <strong>Additional charge:</strong><br>
-        ₱{{ "%.2f"|format(bedroom_price) }} per additional bedroom,<br>
-        ₱{{ "%.2f"|format(bathroom_price) }} per additional bathroom.
-      </p>
+        <div class="whats-included">
+            <h2>What's Included:</h2>
+            {% if 'Regular Cleaning' in service.name %}
+                <div class="included-list">
+                    <div class="included-box">✓ Standard cleaning of specified rooms</div>
+                    <div class="included-box">✓ Dusting and wiping of accessible surfaces</div>
+                    <div class="included-box">✓ Vacuuming and mopping of floors</div>
+                    <div class="included-box">✓ Basic bathroom cleaning and sanitizing</div>
+                    <div class="included-box">✓ Kitchen surface cleaning</div>
+                </div>
+            {% elif 'Deep Cleaning' in service.name %}
+                <div class="included-list">
+                    <div class="included-box">✓ Deep cleaning of all specified rooms</div>
+                    <div class="included-box">✓ Thorough dusting and sanitization of surfaces</div>
+                    <div class="included-box">✓ Deep carpet and upholstery cleaning</div>
+                    <div class="included-box">✓ Detailed bathroom and kitchen sanitization</div>
+                    <div class="included-box">✓ Interior window and track cleaning</div>
+                </div>
+            {% elif 'Move In/Out Cleaning' in service.name %}
+                <div class="included-list">
+                    <div class="included-box">✓ Complete cleaning of empty spaces</div>
+                    <div class="included-box">✓ Inside cabinet and drawer cleaning</div>
+                    <div class="included-box">✓ Appliance cleaning (inside and out)</div>
+                    <div class="included-box">✓ Wall spot cleaning</div>
+                    <div class="included-box">✓ Window and track deep cleaning</div>
+                </div>
+            {% elif 'Post Construction' in service.name %}
+                <div class="included-list">
+                    <div class="included-box">✓ Removal of post-construction dust</div>
+                    <div class="included-box">✓ Detailed cleaning of new fixtures</div>
+                    <div class="included-box">✓ Window and frame cleaning</div>
+                    <div class="included-box">✓ New cabinet cleaning</div>
+                    <div class="included-box">✓ Floor cleaning and polishing</div>
+                </div>
+            {% else %}
+                <div class="included-list">
+                    <div class="included-box">✓ Standard cleaning of specified rooms</div>
+                    <div class="included-box">✓ Dusting and wiping of surfaces</div>
+                    <div class="included-box">✓ Basic cleaning services</div>
+                    <div class="included-box">✓ General sanitization</div>
+                </div>
+            {% endif %}
+        </div>
 
-      {% if base_pricing_id %}
-        <input type="hidden" name="pricing_id" value="{{ base_pricing_id }}">
-      {% endif %}
+        <form method="POST" class="booking-form">
+            <div class="form-section">
+                <h3>Contact Information</h3>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+            </div>
 
-      <label for="bedroom_qty">Number of bedrooms:</label>
-      <input type="number" id="bedroom_qty" name="bedroom_qty" min="0" max="9" value="1" required>
-      <small>(Max 9 bedrooms; total max 10 bedrooms including base 1)</small>
-      <br><br>
+            <div class="form-section">
+                <h3>Service Options</h3>
+                <input type="hidden" name="service_id" value="{{ service.id }}">
+                <input type="hidden" name="pricing_id" id="selected_pricing_id" value="{{ base_pricing_id }}">
+                
+                {% if service.pricing %}
+                    {% for price in service.pricing %}
+                        {% if price.rule_type == 'per_room' and 'Bedroom' in price.label %}
+                        <div class="form-group">
+                            <label for="bedroom_qty">Number of Bedrooms</label>
+                            <input type="number" id="bedroom_qty" name="bedroom_qty" min="1" value="1" required>
+                            <small>Base price includes 1 bedroom. Additional bedrooms: ₱{{ price.price }} each</small>
+                        </div>
+                        {% endif %}
+                        {% if price.rule_type == 'per_room' and 'Bathroom' in price.label %}
+                        <div class="form-group">
+                            <label for="bath_qty">Number of Bathrooms</label>
+                            <input type="number" id="bath_qty" name="bath_qty" min="1" value="1" required>
+                            <small>Base price includes 1 bathroom. Additional bathrooms: ₱{{ price.price }} each</small>
+                        </div>
+                        {% endif %}
+                        {% if price.rule_type == 'hourly' %}
+                        <div class="form-group">
+                            <label for="hours">Number of Hours</label>
+                            <input type="number" id="hours" name="hours" min="1" value="1" required>
+                            <input type="hidden" name="pricing_id" value="{{ hourly_pricing_id }}">
+                            <small>Hourly rate: ₱{{ price.price }} per hour</small>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
 
-      <label for="bath_qty">Number of baths:</label>
-      <input type="number" id="bath_qty" name="bath_qty" min="0" max="9" value="1" required>
-      <small>(Max 9 baths; total max 10 baths including base 1)</small>
-    </fieldset>
+                    {% if service.name in ['End of Tenancy Cleaning', 'Event Cleaning', 'Outdoor Cleaning', 'Disaster Cleaning & Restoration'] %}
+                    <div class="form-group">
+                        <label>Service Options</label>
+                        <input type="hidden" name="is_custom" id="is_custom" value="false">
+                        
+                        <div class="service-options-grid">
+                            {% for option in service.pricing %}
+                                {% if option.rule_type in ['flat_tier', 'flat_rate', 'custom'] %}
+                                <div class="service-option-card {% if option.rule_type == 'custom' %}custom-option{% endif %}"
+                                     data-price-id="{% if option.rule_type == 'custom' %}{{ option.id }}_custom{% else %}{{ option.id }}{% endif %}"
+                                     data-price="{{ option.price }}"
+                                     onclick="selectServiceOption(this)">
+                                    <h3>{{ option.label }}</h3>
+                                    {% if option.rule_type != 'custom' %}
+                                    <p class="price">₱{{ option.price }}</p>
+                                    {% else %}
+                                    <p class="price">Custom Quote</p>
+                                    {% endif %}
+                                    {% if option.rule_type == 'custom' %}
+                                    <p class="description">Assessment Required</p>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
 
-  {% elif flat_tiers %}
-    <fieldset>
-      <legend>Select Pricing Option</legend>
-      {% for option in flat_tiers %}
-      <div>
-        <input 
-          type="radio" 
-          id="pricing_{{ option.label | replace(' ', '_') }}" 
-          name="pricing_id" 
-          value="{{ option.id }}" 
-          required
-        >
-        <label for="pricing_{{ option.label | replace(' ', '_') }}">
-          {{ option.label }} — ₱{{ "%.2f"|format(option.price) }}
-        </label>
-      </div>
-      {% endfor %}
-    </fieldset>
+                        <div class="custom-service-note" id="customNote" style="display: none;">
+                            <p>You have selected a service that requires custom pricing assessment.</p>
+                            <p>Our team will contact you to provide a detailed quote based on your specific requirements.</p>
+                        </div>
+                    </div>
 
-  {% elif flat_rate %}
-    <fieldset>
-      <legend>Select Pricing Option</legend>
-      {% for option in flat_rate %}
-      <div>
-        <input 
-          type="radio" 
-          id="pricing_{{ option.label | replace(' ', '_') }}" 
-          name="pricing_id" 
-          value="{{ option.id }}" 
-          required
-        >
-        <label for="pricing_{{ option.label | replace(' ', '_') }}">
-          {{ option.label }} — ₱{{ "%.2f"|format(option.price) }}
-        </label>
-      </div>
-      {% endfor %}
-    </fieldset>
+                    <style>
+                        .service-options-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                            gap: 1rem;
+                            margin-top: 1rem;
+                        }
+                        .service-option-card {
+                            background: #fff;
+                            border: 2px solid #ddd;
+                            border-radius: 8px;
+                            padding: 1.5rem;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        }
+                        .service-option-card:hover {
+                            border-color: #007bff;
+                            transform: translateY(-2px);
+                        }
+                        .service-option-card.selected {
+                            border-color: #007bff;
+                            background: #f8f9ff;
+                        }
+                        .service-option-card h3 {
+                            margin: 0 0 0.5rem 0;
+                            font-size: 1.1rem;
+                            color: #333;
+                        }
+                        .service-option-card .price {
+                            font-size: 1.2rem;
+                            color: #007bff;
+                            font-weight: 600;
+                            margin: 0;
+                        }
+                        .service-option-card .description {
+                            font-size: 0.9rem;
+                            color: #666;
+                            margin: 0.5rem 0 0 0;
+                        }
+                        .custom-option {
+                            background: #f8f9ff;
+                            border-style: dashed;
+                        }
+                    </style>
 
-  {% elif hourly_price %}
-    <fieldset>
-      <legend>Hourly Pricing</legend>
-      <p>₱{{ "%.2f"|format(hourly_price) }} per hour</p>
+                    <script>
+                        function selectServiceOption(element) {
+                            // Remove selected class from all options
+                            document.querySelectorAll('.service-option-card').forEach(card => {
+                                card.classList.remove('selected');
+                            });
+                            
+                            // Add selected class to clicked option
+                            element.classList.add('selected');
+                            
+                            // Update hidden inputs
+                            const priceId = element.getAttribute('data-price-id');
+                            const selectedPricingInput = document.getElementById('selected_pricing_id');
+                            if (selectedPricingInput) {
+                                selectedPricingInput.value = priceId.split('_')[0]; // Remove _custom suffix if present
+                            }
+                            
+                            // Handle custom option display
+                            const isCustom = priceId.includes('_custom');
+                            const customNote = document.getElementById('customNote');
+                            const isCustomInput = document.getElementById('is_custom');
+                            
+                            if (customNote) {
+                                customNote.style.display = isCustom ? 'block' : 'none';
+                            }
+                            if (isCustomInput) {
+                                isCustomInput.value = isCustom ? 'true' : 'false';
+                            }
+                        }
 
-      {% if hourly_pricing_id %}
-        <input type="hidden" name="pricing_id" value="{{ hourly_pricing_id }}">
-      {% endif %}
+                        // Auto-select the first option on page load
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const firstOption = document.querySelector('.service-option-card');
+                            if (firstOption) {
+                                selectServiceOption(firstOption);
+                            }
+                        });
+                    </script>
+                    {% endif %}
+                {% endif %}
 
-      <label for="hours">Number of hours:</label>
-      <input type="number" id="hours" name="hours" min="1" max="24" value="1" required>
-    </fieldset>
+                <div class="form-group">
+                    <label for="date">Preferred Date</label>
+                    <input type="date" id="date" name="date" required min="{{ today }}">
+                </div>
 
-  {% elif custom_label %}
-    <p>{{ custom_label }} – Pricing upon assessment</p>
-    <input type="hidden" name="pricing_id" value="0">  {# default placeholder #}
-  {% endif %}
+                <div class="form-group">
+                    <label for="notes">Additional Notes</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Any specific requirements or areas that need special attention?"></textarea>
+                </div>
+            </div>
 
-  <fieldset>
-    <legend>Customer Information</legend>
-    <label for="name">Name:</label><br>
-    <input type="text" id="name" name="name" required><br><br>
-
-    <label for="email">Email:</label><br>
-    <input type="email" id="email" name="email" required><br><br>
-
-    <label for="phone">Phone:</label><br>
-    <input type="tel" id="phone" name="phone" required><br><br>
-
-    <label for="date">Booking Date:</label><br>
-    <input type="date" id="date" name="date" required><br><br>
-
-    <label for="notes">Additional Notes (optional):</label><br>
-    <textarea id="notes" name="notes" rows="3"></textarea><br><br>
-  </fieldset>
-
-  <button type="submit">Confirm Booking</button>
-</form>
-
-<a href="{{ url_for('home') }}">Back to services</a>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

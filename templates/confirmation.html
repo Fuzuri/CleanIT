@@ -1,33 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}Booking Confirmation - CleanHome Services{% endblock %}
+{% block title %}Booking Confirmation - CleanIT{% endblock %}
 
 {% block content %}
-<h2>Booking Confirmation</h2>
+<div class="confirmation-container">
+    <div class="confirmation-header">
+        <i class="fas fa-check-circle"></i>
+        <h1>Thank You for Choosing CleanIT!</h1>
+        <p>Your cleaning service has been scheduled successfully.</p>
+    </div>
 
-<p>Thank you for booking with CleanHome!</p>
+    <div class="confirmation-content">
+        <div class="details-section">
+            <h2>Booking Details</h2>
+            <div class="details-row">
+                <span class="details-label">Booking ID</span>
+                <span class="details-value">#{{ booking.id }}</span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Service</span>
+                <span class="details-value">{{ booking.service_name }}</span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Date</span>
+                <span class="details-value">{{ booking.date }}</span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Total Amount</span>
+                <span class="details-value total">{{ booking.total_price|currency }}</span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Service Specs</span>
+                <span class="details-value">
+                    {% if booking.service_name == 'Regular Cleaning' or booking.service_name == 'Deep Cleaning' %}
+                        {% if booking.bedroom_qty > 0 %}{{ booking.bedroom_qty }} room(s){% endif %}
+                        {% if booking.bath_qty > 0 %}{% if booking.bedroom_qty > 0 %} • {% endif %}{{ booking.bath_qty }} bath(s){% endif %}
+                    {% elif booking.service_name == 'Domestic Cleaning' %}
+                        {% if booking.hours > 0 %}{{ booking.hours }} hour(s){% endif %}
+                    {% elif booking.service_name in ['End of Tenancy Cleaning', 'Event Cleaning', 'Outdoor Cleaning', 'Disaster Cleaning & Restoration'] %}
+                        {% if booking.pricing_label %}
+                            {{ booking.pricing_label }}
+                            {% if booking.rule_type == 'custom' %}
+                            <span class="bullet">•</span>
+                            <span class="custom-tag">Custom Assessment</span>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
 
-<ul>
-  <li><strong>Booking ID:</strong> {{ booking.id }}</li>
-  <li><strong>Service:</strong> {{ booking.service_name }}</li>
-  <li><strong>Customer Name:</strong> {{ booking.customer_name }}</li>
-  <li><strong>Email:</strong> {{ booking.customer_email }}</li>
-  <li><strong>Phone:</strong> {{ booking.customer_phone }}</li>
-  <li><strong>Date:</strong> {{ booking.date }}</li>
-  <li><strong>Service Address:</strong>
-    {% if payment %}
-      {{ payment.street_address }}, {{ payment.city }}, {{ payment.province }}, {{ payment.region }}
-    {% else %}
-      Not provided
-    {% endif %}
-  </li>
-  <li><strong>Notes:</strong> {{ booking.notes or 'None' }}</li>
-  <li><strong>Bedrooms:</strong> {{ booking.bedroom_qty }}</li>
-  <li><strong>Baths:</strong> {{ booking.bath_qty }}</li>
-  <li><strong>Total Price:</strong> ₱{{ "%.2f"|format(booking.total_price) }}</li>
-  <li><strong>Payment Method:</strong> {{ payment.payment_method if payment else 'Not provided' }}</li>
-  <li><strong>Payment Status:</strong> {{ payment.payment_status if payment else 'Pending' }}</li>
-</ul>
+        <div class="details-section">
+            <h2>Payment Details</h2>
+            <div class="details-row">
+                <span class="details-label">Payment Method</span>
+                <span class="details-value">{{ payment.payment_method }}</span>
+            </div>
+            <div class="details-row">
+                <span class="details-label">Payment Status</span>
+                <span class="details-value status-{{ payment.status|default('pending')|lower }}">{{ payment.status|default('Pending')|capitalize }}</span>
+            </div>
+        </div>
 
-<a href="{{ url_for('home') }}">Back to Services</a>
+        <div class="details-section">
+            <h2>Service Address</h2>
+            <div class="service-address">
+                <span>{{ payment.street_address }}</span>
+                <span>{{ payment.city }}</span>
+                <span>{{ payment.province }}</span>
+                <span>{{ payment.region }}</span>
+            </div>
+        </div>
+
+        {% if booking.notes %}
+        <div class="details-section">
+            <h2>Additional Notes</h2>
+            <p class="details-value">{{ booking.notes }}</p>
+        </div>
+        {% endif %}
+
+        <div class="confirmation-actions">
+            <a href="{{ url_for('home', _anchor='services') }}" class="action-button primary-action">Book Another Service</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const successIcon = document.querySelector('.fa-check-circle');
+    if (successIcon) {
+        successIcon.style.fontSize = '48px';
+        successIcon.style.marginBottom = '1rem';
+    }
+});
+</script>
+{% endblock %}
+

@@ -16,6 +16,7 @@ def create_booking(service_id, pricing_id, customer_info):
             - address (str)
             - bedroom_qty (int), default 1
             - bath_qty (int), default 1
+            - hours (int), default 0
             - notes (str), optional
             - total_price (float)
 
@@ -25,8 +26,8 @@ def create_booking(service_id, pricing_id, customer_info):
     with db_connection() as conn:
         cursor = conn.execute('''
             INSERT INTO bookings
-            (service_id, pricing_id, customer_name, customer_email, customer_phone, date, bedroom_qty, bath_qty, notes, total_price, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (service_id, pricing_id, customer_name, customer_email, customer_phone, date, bedroom_qty, bath_qty, hours, notes, total_price, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             service_id,
             pricing_id,
@@ -36,6 +37,7 @@ def create_booking(service_id, pricing_id, customer_info):
             customer_info['date'],
             customer_info.get('bedroom_qty', 1),
             customer_info.get('bath_qty', 1),
+            customer_info.get('hours', 0),
             customer_info.get('notes', ''),
             customer_info.get('total_price', 0.0),
             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -57,7 +59,8 @@ def get_booking(booking_id):
     """
     with db_connection() as conn:
         booking = conn.execute('''
-            SELECT b.*, s.name AS service_name, sp.label AS pricing_label, sp.price AS pricing_price
+            SELECT b.*, s.name AS service_name, sp.label AS pricing_label, sp.price AS pricing_price,
+                   sp.rule_type, sp.id AS original_pricing_id
             FROM bookings b
             JOIN services s ON b.service_id = s.id
             JOIN service_pricing sp ON b.pricing_id = sp.id
@@ -67,4 +70,9 @@ def get_booking(booking_id):
         if booking is None:
             return None
 
-        return dict(booking)
+        # Convert to dict and handle custom pricing ID
+        booking_dict = dict(booking)
+        if booking_dict['rule_type'] == 'custom':
+            booking_dict['pricing_id'] = f"{booking_dict['original_pricing_id']}_custom"
+        
+        return booking_dict

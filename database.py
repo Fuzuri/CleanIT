@@ -39,6 +39,7 @@ def init_db():
             date TEXT NOT NULL,
             bedroom_qty INTEGER DEFAULT 1,
             bath_qty INTEGER DEFAULT 1,
+            hours INTEGER DEFAULT 0,
             notes TEXT,
             total_price REAL DEFAULT 0,
             created_at TEXT DEFAULT (datetime('now')),
